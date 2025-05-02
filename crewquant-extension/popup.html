@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CrewQuant Time Tracker</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .work {
+      background-color: #c8e6c9;
+      color: #2e7d32;
+    }
+    .non-work {
+      background-color: #ffcdd2;
+      color: #c62828;
+    }
+    .not-logged-in {
+      background-color: #ffecb3;
+      color: #ff6f00;
+    }
+    .current-url {
+      margin-bottom: 15px;
+      word-break: break-all;
+    }
+    button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #3367d6;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>CrewQuant Time Tracker</h2>
+  
+  <div id="not-logged-in" class="status not-logged-in hidden">
+    <p>You are not logged in.</p>
+    <button id="open-options">Login</button>
+  </div>
+
+  <div id="logged-in" class="hidden">
+    <div id="work-status" class="status work hidden">
+      <p>Currently tracking work time</p>
+    </div>
+    
+    <div id="non-work-status" class="status non-work hidden">
+      <p>Currently tracking non-work time</p>
+    </div>
+    
+    <div class="current-url">
+      <strong>Current URL:</strong>
+      <p id="current-url-text"></p>
+    </div>
+    
+    <div id="work-id-section" class="hidden">
+      <strong>Work ID:</strong>
+      <p id="work-id-text"></p>
+    </div>
+    
+    <button id="open-settings">Settings</button>
+    <button id="logout-button">Logout</button>
+  </div>
+  
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

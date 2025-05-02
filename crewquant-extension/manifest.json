@@ -1,0 +1,25 @@
+{
+  "name": "CrewQuant Time Tracker",
+  "version": "1.0",
+  "description": "Track work time based on URL patterns",
+  "manifest_version": 3,
+  "permissions": [
+    "storage",
+    "tabs",
+    "idle",
+    "alarms",
+    "webNavigation",
+    "windows"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "host_permissions": [
+    "http://localhost:3001/*"
+  ]
+}
