@@ -76,12 +76,6 @@ const LoginForm: React.FC = () => {
             ,boxShadow: 3, borderRadius: 3, padding: 3}}
         >
           <Typography variant="h5" textAlign="center" gutterBottom>Login</Typography>
-          
-          {loginError && (
-            <Typography color="error" textAlign="center">
-              {'loginError'}
-            </Typography>
-          )}
     
           <TextField
             label="Email"
@@ -125,6 +119,12 @@ const LoginForm: React.FC = () => {
           >
             {isLoading ? <CircularProgress size={24} /> : 'Login'}
           </Button>
+
+          {loginError && (
+            <Typography color="error" textAlign="center">
+              {'Failed to login'} 
+            </Typography>
+          )}
 
           <Typography variant="body2" textAlign="center" mt={2}>
               Don't have an account? <a href="/register"

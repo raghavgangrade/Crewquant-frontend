@@ -6,6 +6,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { WorkPolicy } from '../services/workPolicyService';
+import SummaryCards from './SummeryCards';
 
 const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
 
@@ -39,6 +40,16 @@ const TimeEventTable: React.FC = () => {
   const [workPolicy, setWorkPolicy] = useState<WorkPolicy | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // Filter events for selected date
+  const filterEventsByDate = (events: TimeEvent[]): TimeEvent[] => {
+    return events.filter(event => {
+      const eventDate = new Date(event.start_time).toDateString();
+      const filterDate = new Date(selectedDate).toDateString();
+      return eventDate === filterDate;
+    });
+  };
 
   // Get token from localStorage
   const token = localStorage.getItem('token');
@@ -160,6 +171,15 @@ const TimeEventTable: React.FC = () => {
         </Alert>
       )}
 
+      {/* Add SummaryCards component with date handling */}
+      {timeEvents.length > 0 && (
+        <SummaryCards 
+          timeEvents={timeEvents}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+        />
+      )}
+
       {timeEvents.length === 0 ? (
         <Alert severity="info">No time events found.</Alert>
       ) : (
@@ -168,7 +188,6 @@ const TimeEventTable: React.FC = () => {
             <Table sx={{ width: '100%' }}>
               <TableHead>
                 <TableRow>
-                  
                   <StyledTableCell>Type</StyledTableCell>
                   <StyledTableCell>Work ID</StyledTableCell>
                   <StyledTableCell>URL</StyledTableCell>
@@ -177,9 +196,8 @@ const TimeEventTable: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {timeEvents.map((event) => (
+                {filterEventsByDate(timeEvents).map((event) => (
                   <TableRow key={event.id}>
-                    
                     <TableCell sx={{ color: event.type === 'work' ? 'green' : 'red' }}>
                       {event.type}
                     </TableCell>
