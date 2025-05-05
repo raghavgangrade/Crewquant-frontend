@@ -8,6 +8,8 @@ import KeyIcon from '@mui/icons-material/Key';
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
+
 type FormData = {
     email: string;
     password: string;
@@ -37,7 +39,7 @@ const LoginForm: React.FC = () => {
         setLoginError(null);
         
         try {
-          const response = await axios.post('http://localhost:3001/api/auth/login', data, {
+          const response = await axios.post(`${API_BASE_URL}/auth/login`, data, {
             headers: {
               'Content-Type': 'application/json',
             },
@@ -77,7 +79,7 @@ const LoginForm: React.FC = () => {
           
           {loginError && (
             <Typography color="error" textAlign="center">
-              {loginError}
+              {'loginError'}
             </Typography>
           )}
     

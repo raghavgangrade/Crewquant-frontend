@@ -59,7 +59,8 @@ export function isWorkUrl(url) {
   
   for (const pattern of workPolicy.workUrls) {
     try {
-      const regex = new RegExp(pattern.urlPattern);
+      const cleanedPattern = pattern.urlPattern.replace(/^\/|\/$/g, '');
+      const regex = new RegExp(cleanedPattern);
       if (regex.test(url)) {
         return true;
       }

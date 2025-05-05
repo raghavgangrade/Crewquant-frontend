@@ -7,6 +7,8 @@ import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { WorkPolicy } from '../services/workPolicyService';
 
+const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
+
 // Interface for TimeEvent
 interface TimeEvent {
   id: number;
@@ -51,7 +53,7 @@ const TimeEventTable: React.FC = () => {
 
     // Fetch the work policy settings
     axios
-      .get('http://localhost:3001/api/work-policy', {
+      .get(`${API_BASE_URL}/work-policy`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -85,7 +87,7 @@ const TimeEventTable: React.FC = () => {
 
     // Fetch time events
     axios
-      .get('http://localhost:3001/api/time-events', {
+      .get(`${API_BASE_URL}/time-events`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
