@@ -7,6 +7,7 @@ import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { WorkPolicy } from '../services/workPolicyService';
 import SummaryCards from './SummeryCards';
+import HourlyDistributionChart from './HourlyDistributionChart';
 
 const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
 
@@ -177,6 +178,13 @@ const TimeEventTable: React.FC = () => {
           timeEvents={timeEvents}
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
+        />
+      )}      
+
+      {timeEvents.length > 0 && (
+        <HourlyDistributionChart
+          timeEvents={timeEvents}
+          selectedDate={selectedDate}
         />
       )}
 
