@@ -73,13 +73,10 @@ const HourlyDistributionChart: React.FC<HourlyDistributionChartProps> = ({
 
   return (
     <Box sx={{ 
-      width: '50%', 
       height: 400, 
       mb: 4,
-      p: 6,
+      p: 2,
       bgcolor: 'background.paper',
-      borderRadius: 2,
-      boxShadow: 1
     }}>
       <Typography variant="h6" align="center" gutterBottom>
         Hourly Activity Distribution - {new Date(selectedDate).toLocaleDateString()}
@@ -90,6 +87,7 @@ const HourlyDistributionChart: React.FC<HourlyDistributionChartProps> = ({
           <XAxis 
             dataKey="hour"
             tickFormatter={(hour) => `${hour}:00`}
+            height={80}
           />
           <YAxis 
             tickFormatter={(minutes) => `${Math.round(minutes)}m`}

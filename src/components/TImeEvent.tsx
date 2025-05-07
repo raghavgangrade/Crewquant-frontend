@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { WorkPolicy } from '../services/workPolicyService';
 import SummaryCards from './SummeryCards';
 import HourlyDistributionChart from './HourlyDistributionChart';
+import TimeLineChart from './TimeLineChart';
 
 const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
 
@@ -179,14 +180,31 @@ const TimeEventTable: React.FC = () => {
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
         />
-      )}      
+      )}    
 
+      {/* Charts Container - Side by side layout */}
       {timeEvents.length > 0 && (
-        <HourlyDistributionChart
-          timeEvents={timeEvents}
-          selectedDate={selectedDate}
-        />
-      )}
+        <Box sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' }, // Stack on mobile, side by side on desktop
+          gap: 2,
+          mb: 4
+        }}>
+          {/* Left Chart */}
+          <Box sx={{ flex: 1, boxShadow : 1, borderRadius: 2, width: '100%' }}>
+            <HourlyDistributionChart
+              timeEvents={timeEvents}
+              selectedDate={selectedDate}
+            />
+          </Box>
+          {/* Right Chart */}
+          <Box sx={{ flex: 1, boxShadow : 1, borderRadius: 2, width: '100%' }}>
+            <TimeLineChart
+              timeEvents={timeEvents}
+            />
+          </Box>
+        </Box>
+      )}     
 
       {timeEvents.length === 0 ? (
         <Alert severity="info">No time events found.</Alert>
