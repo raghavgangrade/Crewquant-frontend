@@ -1,6 +1,6 @@
 // Import necessary components and icons from Material-UI and React
 import React from 'react';
-import { Grid as MuiGrid, Card, CardContent, CardHeader, Typography, TextField, Box } from '@mui/material';
+import { Grid as MuiGrid, Card, CardContent, CardHeader, Typography, TextField, Box, Container } from '@mui/material';
 import WorkIcon from '@mui/icons-material/Work';
 import TimerOffIcon from '@mui/icons-material/TimerOff';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -124,7 +124,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ timeEvents, selectedDate, o
       <Grid container spacing={3.5} sx={{ mb: 4 }} justifyContent="center">
         {/* Total Time Card - Shows combined time from all categories */}
         <Grid item xs={12} md={4}>
-          <Card raised sx={{ minHeight: 180, minWidth: 270 }}>
+          <Card raised sx={{ minHeight: 180, minWidth: 250 }}>
             <CardHeader
               avatar={<AccessTimeIcon color="success" />} // Reusing icon; replace with another if you like
               title="Total Time (out of 8h)"
@@ -141,7 +141,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ timeEvents, selectedDate, o
 
         {/* Work Time Card - Shows time spent working */}
         <Grid item xs={12} md={4}>
-          <Card raised sx={{ minHeight: 180, minWidth: 270 }}>
+          <Card raised sx={{ minHeight: 180, minWidth: 250 }}>
             <CardHeader
               avatar={<WorkIcon color="primary" />}
               title="Work Time"
@@ -158,7 +158,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ timeEvents, selectedDate, o
 
         {/* Non-Work Time Card - Shows time spent on non-work activities */}
         <Grid item xs={12} md={4}>
-          <Card raised sx={{ minHeight: 180, minWidth: 270 }}>
+          <Card raised sx={{ minHeight: 180, minWidth: 250 }}>
             <CardHeader
               avatar={<TimerOffIcon color="error" />}
               title="Non-Work Time"
@@ -175,7 +175,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ timeEvents, selectedDate, o
 
         {/* Idle Time Card - Shows time spent inactive */}
         <Grid item xs={12} md={4}>
-          <Card raised sx={{ minHeight: 180, minWidth: 270 }}>
+          <Card raised sx={{ minHeight: 180, minWidth: 250 }}>
             <CardHeader
               avatar={<AccessTimeIcon color="warning" />}
               title="Idle Time"
@@ -190,7 +190,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ timeEvents, selectedDate, o
           </Card>
         </Grid>
       </Grid>
-    </Box>
+    </Box>  
   );
 };
 
