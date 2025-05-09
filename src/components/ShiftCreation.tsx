@@ -87,23 +87,35 @@ const ShiftCreation: React.FC = () => {
       setError('Please fill in all required fields');
       return;
     }
-
+  
     if (formData.recurringDays.length === 0) {
       setError('Please select at least one working day');
       return;
     }
-
-    // Add new shift to list
-    const newShift = {
-      ...formData,
-      id: shifts.length + 1
-    };
-
-    setShifts(prev => [...prev, newShift]);
-    setSuccess('Shift created successfully');
+  
+    setIsLoading(true);
+  
+    if (editingShift) {
+      // Update existing shift
+      const updatedShifts = shifts.map(shift =>
+        shift.id === editingShift.id ? { ...formData, id: editingShift.id } : shift
+      );
+      setShifts(updatedShifts);
+      setSuccess('Shift updated successfully');
+    } else {
+      // Add new shift
+      const newShift = {
+        ...formData,
+        id: shifts.length + 1
+      };
+      setShifts(prev => [...prev, newShift]);
+      setSuccess('Shift created successfully');
+    }
+  
+    setIsLoading(false);
     resetForm();
   };
-
+  
   const handleEdit = (shift: Shift) => {
     setEditingShift(shift);
     setFormData(shift);
@@ -151,12 +163,12 @@ const ShiftCreation: React.FC = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Container maxWidth="lg">
+      <Container maxWidth="xl">
         <Box sx={{ mt: 4, mb: 4 }}>
           <Typography variant="h4" textAlign="center" gutterBottom>
             Shift Management
           </Typography>
-
+    
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
             {/* Left column - Shift Form */}
             <Box sx={{ flex: 1}}>
