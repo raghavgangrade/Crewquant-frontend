@@ -1,5 +1,5 @@
 // Base URL for the API
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
 
 // Get auth token from storage
 async function getAuthToken() {

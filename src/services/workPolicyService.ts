@@ -13,7 +13,7 @@ export interface WorkPolicy {
   monitorNonWorkTime: boolean;
 }
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
 
 /**
  * Service for handling all work policy API operations

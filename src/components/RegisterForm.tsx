@@ -15,6 +15,8 @@ type FormData = {
   confirmPassword: string;
 };
 
+const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
+
 const schema = yup.object().shape({
   name: yup.string().required('Full Name is required'),
   email: yup.string().email('Email is not valid').required('Email is required'),
@@ -37,7 +39,7 @@ const RegisterForm: React.FC = () => {
 
   const onSubmit: SubmitHandler<FormData> = async data => {
     try {
-      const response = await axios.post('http://localhost:3001/api/auth/register', data, {
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, data, {
         headers: {
           'Content-Type': 'application/json',
         },

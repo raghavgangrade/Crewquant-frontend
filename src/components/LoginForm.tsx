@@ -8,6 +8,8 @@ import KeyIcon from '@mui/icons-material/Key';
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
+
 type FormData = {
     email: string;
     password: string;
@@ -37,7 +39,7 @@ const LoginForm: React.FC = () => {
         setLoginError(null);
         
         try {
-          const response = await axios.post('http://localhost:3001/api/auth/login', data, {
+          const response = await axios.post(`${API_BASE_URL}/auth/login`, data, {
             headers: {
               'Content-Type': 'application/json',
             },
@@ -74,12 +76,6 @@ const LoginForm: React.FC = () => {
             ,boxShadow: 3, borderRadius: 3, padding: 3}}
         >
           <Typography variant="h5" textAlign="center" gutterBottom>Login</Typography>
-          
-          {loginError && (
-            <Typography color="error" textAlign="center">
-              {loginError}
-            </Typography>
-          )}
     
           <TextField
             label="Email"
@@ -123,6 +119,12 @@ const LoginForm: React.FC = () => {
           >
             {isLoading ? <CircularProgress size={24} /> : 'Login'}
           </Button>
+
+          {loginError && (
+            <Typography color="error" textAlign="center">
+              {'Failed to login'} 
+            </Typography>
+          )}
 
           <Typography variant="body2" textAlign="center" mt={2}>
               Don't have an account? <a href="/register"

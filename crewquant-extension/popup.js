@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const openSettingsButton = document.getElementById('open-settings');
     const logoutButton = document.getElementById('logout-button');
     
+    const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
+
     // Check if user is logged in
     chrome.storage.local.get(['authToken'], function(result) {
       if (result.authToken) {
@@ -54,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Open settings
     openSettingsButton.addEventListener('click', function() {
-      chrome.tabs.create({ url: 'http://localhost:3000/work-policy' });
+      chrome.tabs.create({ url: `${API_BASE_URL}/work-policy` });
     });
     
     // Logout
