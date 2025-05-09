@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   TextField,
   Button,
-  Switch,
-  FormControlLabel,
   Paper,
   Container,
   Alert,
@@ -19,12 +17,11 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { MobileTimePicker } from '@mui/x-date-pickers/MobileTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
+import { createShift, getShifts, deleteShift,updateShift  } from '../services/ShiftService';
 
 // Fix for Material-UI Grid component typing
 const Grid = MuiGrid as React.ComponentType<any>;
@@ -62,6 +59,45 @@ const ShiftCreation: React.FC = () => {
   // Get token from localStorage
   const token = localStorage.getItem('token');
 
+  useEffect(() => {
+    if (token) {
+      const fetchShifts = async () => {
+        try {
+          const response = await getShifts(token);
+          console.log('API response:', response); // Should show { shifts: [...] }
+  
+          if (Array.isArray(response.shifts)) {
+            // Map the API response to match the Shift type
+            const mappedShifts = response.shifts.map((shift: any) => {
+              // Add current date to the time for valid Date parsing
+              const dateToday = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+              const startDateTime = new Date(`${dateToday}T${shift.start_time}`);
+              const endDateTime = new Date(`${dateToday}T${shift.end_time}`);
+  
+              return {
+                id: shift.id,
+                name: shift.shift_name,
+                startTime: startDateTime,
+                endTime: endDateTime,
+                breakDuration: shift.break_duration || 30, 
+                recurringDays: shift.days.map((day: string) => DAYS_OF_WEEK.indexOf(day))
+              };
+            });
+            setShifts(mappedShifts); // Correctly extracted array
+          } else {
+            console.error('Unexpected response structure:', response);
+            setError('Invalid response format');
+          }
+        } catch (err) {
+          console.error('Error fetching shifts:', err);
+          setError('Failed to fetch shifts');
+        }
+      };
+  
+      fetchShifts();
+    }
+  }, [token]);
+  
   const handleInputChange = (field: keyof Shift, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -81,10 +117,14 @@ const ShiftCreation: React.FC = () => {
     });
   };
 
-  const handleSubmit = () => {
-    // Validate form
-    if (!formData.name || !formData.startTime || !formData.endTime) {
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.startTime || !formData.endTime || isNaN(formData.startTime.getTime()) || isNaN(formData.endTime.getTime())) {
       setError('Please fill in all required fields');
+      return;
+    }
+  
+    if (formData.breakDuration <= 0 || isNaN(formData.breakDuration)) {
+      setError('Break duration must be a positive integer.');
       return;
     }
   
@@ -95,37 +135,63 @@ const ShiftCreation: React.FC = () => {
   
     setIsLoading(true);
   
-    if (editingShift) {
-      // Update existing shift
-      const updatedShifts = shifts.map(shift =>
-        shift.id === editingShift.id ? { ...formData, id: editingShift.id } : shift
-      );
-      setShifts(updatedShifts);
-      setSuccess('Shift updated successfully');
-    } else {
-      // Add new shift
-      const newShift = {
-        ...formData,
-        id: shifts.length + 1
-      };
-      setShifts(prev => [...prev, newShift]);
-      setSuccess('Shift created successfully');
+    const payload = {
+      user_id: 1, // Replace with actual dynamic user ID if needed
+      shift_name: formData.name,
+      start_time: format(formData.startTime, 'HH:mm:ss'),
+      end_time: format(formData.endTime, 'HH:mm:ss'),
+      days: formData.recurringDays.map((i) => DAYS_OF_WEEK[i]),
+      break_duration: formData.breakDuration,
+    };
+  
+    try {
+      if (editingShift) {
+        await updateShift(editingShift.id!, payload, token!);
+  
+        const updatedShifts = shifts.map((shift) =>
+          shift.id === editingShift.id ? { ...formData, id: editingShift.id } : shift
+        );
+        setShifts(updatedShifts);
+        setSuccess('Shift updated successfully');
+      } else {
+        const createdShift = await createShift(payload, token!);
+        setShifts((prev) => [...prev, { ...formData, id: createdShift.id }]);
+        setSuccess('Shift created successfully');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to save shift. Please try again.');
     }
   
     setIsLoading(false);
     resetForm();
   };
   
+  
   const handleEdit = (shift: Shift) => {
     setEditingShift(shift);
     setFormData(shift);
   };
 
-  const handleDelete = (id: number) => {
-    setShifts(prev => prev.filter(shift => shift.id !== id));
-    setSuccess('Shift deleted successfully');
+  const handleDelete = async (id: number) => {
+    if (!token) {
+      setError('You need to log in to delete shifts');
+      return;
+    }
+  
+    try {
+      // Call the deleteShift function from the service to delete the shift
+      await deleteShift(id.toString(), token);
+  
+      // Remove the deleted shift from the state
+      setShifts(prev => prev.filter(shift => shift.id !== id));
+      setSuccess('Shift deleted successfully');
+    } catch (err) {
+      console.error('Error deleting shift:', err);
+      setError('Failed to delete shift. Please try again.');
+    }
   };
-
+  
   const resetForm = () => {
     setFormData({
       name: '',
@@ -137,7 +203,10 @@ const ShiftCreation: React.FC = () => {
     setEditingShift(null);
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date: Date | null) => {
+    if (!date || isNaN(date.getTime())) {
+      return 'Invalid Time'; // Return fallback text for invalid dates
+    }
     return format(date, 'hh:mm a');
   };
 
@@ -188,14 +257,14 @@ const ShiftCreation: React.FC = () => {
 
                   <MobileTimePicker
                     label="Start Time"
-                    value={formData.startTime}
+                    value={formData.startTime || new Date()}
                     onChange={(date) => handleInputChange('startTime', date)}
                     sx={{ width: '100%' }}
                   />
 
                   <MobileTimePicker
                     label="End Time"
-                    value={formData.endTime}
+                    value={formData.endTime || new Date()}
                     onChange={(date) => handleInputChange('endTime', date)}
                     sx={{ width: '100%' }}
                   />
@@ -207,7 +276,6 @@ const ShiftCreation: React.FC = () => {
                     onChange={(e) => handleInputChange('breakDuration', parseInt(e.target.value))}
                     fullWidth
                   />
-
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       Working Days
@@ -224,7 +292,6 @@ const ShiftCreation: React.FC = () => {
                       ))}
                     </Box>
                   </Box>
-
                   <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
                     <Button onClick={resetForm}>
                       Cancel
@@ -240,7 +307,6 @@ const ShiftCreation: React.FC = () => {
                 </Box>
               </Paper>
             </Box>
-
             {/* Right column - Shifts List */}
             <Box sx={{ flex: 1, mb: 4 }}>
               <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
@@ -249,7 +315,7 @@ const ShiftCreation: React.FC = () => {
                 </Typography>
 
                 <List sx={{ maxHeight: 500, overflow: 'auto' }}>
-                  {shifts.length === 0 ? (
+                  {Array.isArray(shifts) && shifts.length === 0 ? (
                     <ListItem>
                       <ListItemText
                         primary={
@@ -260,6 +326,8 @@ const ShiftCreation: React.FC = () => {
                       />
                     </ListItem>
                   ) : (
+                    // Safeguard: Check if shifts is an array before mapping
+                    Array.isArray(shifts) &&
                     shifts.map((shift) => (
                       <ListItem
                         key={shift.id}
@@ -269,7 +337,7 @@ const ShiftCreation: React.FC = () => {
                             <IconButton onClick={() => handleEdit(shift)}>
                               <EditIcon />
                             </IconButton>
-                            <IconButton onClick={() => handleDelete(shift.id!)}>
+                            <IconButton onClick={() => handleDelete(shift.id!)} >
                               <DeleteIcon />
                             </IconButton>
                           </Box>
@@ -283,19 +351,18 @@ const ShiftCreation: React.FC = () => {
                                 {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
                               </Typography>
                               <Box sx={{ mt: 1 }}>
-                                Working Days: {shift.recurringDays.map(day => DAYS_OF_WEEK[day].substring(0, 3)).join(', ')}
+                                Working Days: {shift.recurringDays && Array.isArray(shift.recurringDays) ? shift.recurringDays.map(day => DAYS_OF_WEEK[day].substring(0, 3)).join(', ') : 'N/A'}
                               </Box>
                             </React.Fragment>
                           }
                         />
                       </ListItem>
                     ))
-                    )}
+                  )}
                 </List>
               </Paper>
             </Box>
           </Box>
-
           <Snackbar
             open={!!error || !!success}
             autoHideDuration={6000}
@@ -320,5 +387,4 @@ const ShiftCreation: React.FC = () => {
     </LocalizationProvider>
   );
 };
-
 export default ShiftCreation;
