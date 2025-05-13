@@ -2,6 +2,7 @@
 import * as api from './api.js';
 import * as urlService from './services/url-service.js';
 import * as idleService from './services/idle-service.js';
+import * as shiftService from './services/shift-service.js';
 
 // State management
 let isTracking = false;
@@ -18,6 +19,9 @@ async function initialize() {
       
       // Load work policy
       const workPolicy = await urlService.loadWorkPolicy();
+      
+      // Initialize shift tracking
+      await shiftService.initShiftTracking();
       
       // Start tracking
       startTracking();
@@ -129,7 +133,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'checkWorkUrl') {
     const isWork = urlService.isWorkUrl(request.url);
     const workId = isWork ? urlService.extractWorkId(request.url) : null;
-    sendResponse({ isWork, workId });
+    const isInShift = shiftService.isInActiveShift();
+    sendResponse({ isWork, workId, isInShift });
   } else if (request.action === 'userLogout') {
     console.log('User logged out, stopping tracking');
     isAuthenticated = false;
@@ -138,12 +143,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Helper to troubleshoot idle tracking
     const idleDebugInfo = idleService.getDebugInfo();
     const workPolicy = urlService.getWorkPolicy();
+    const shiftInfo = shiftService.getShiftInfo();
     
     sendResponse({
       ...idleDebugInfo,
       workPolicy,
-      isTracking
+      isTracking,
+      shiftInfo
     });
+  } else if (request.action === 'refreshShiftData') {
+    // Refresh shift data when requested
+    shiftService.refreshShiftData()
+      .then(success => {
+        sendResponse({ success });
+      })
+      .catch(error => {
+        console.error('Error refreshing shift data:', error);
+        sendResponse({ success: false, error: error.message });
+      });
+    return true; // Keep the message channel open for async response
   }
   return true; // Keep the message channel open for async responses
 });

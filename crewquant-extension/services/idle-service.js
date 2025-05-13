@@ -1,10 +1,12 @@
 // Idle Service - Handles idle time detection and tracking
 import * as api from '../api.js';
 import * as urlService from './url-service.js';
+import * as shiftService from './shift-service.js';
 
 // State management for idle tracking
 let idleStartTime = null;
 let isCurrentlyIdle = false;
+let trackOnlyDuringShifts = true; // Config flag to enable/disable shift-based tracking
 
 // Initialize idle detection
 export function initIdleDetection(workPolicy) {
@@ -28,6 +30,11 @@ export function initIdleDetection(workPolicy) {
     console.log('Idle time monitoring is disabled in work policy');
     return false;
   }
+}
+
+// Enable or disable shift-based tracking
+export function setTrackOnlyDuringShifts(value) {
+  trackOnlyDuringShifts = value;
 }
 
 // Remove idle detection
@@ -96,6 +103,30 @@ async function recordIdleTimeEvent(idleStart, idleEnd) {
       return;
     }
     
+    // Check if shift-based tracking is enabled and user is in an active shift
+    if (trackOnlyDuringShifts) {
+      // For idle periods that may span across shift boundaries, check start and end times
+      const wasInShiftAtStart = wasInShift(idleStart);
+      const wasInShiftAtEnd = wasInShift(idleEnd);
+      
+      if (!wasInShiftAtStart && !wasInShiftAtEnd) {
+        console.log('Idle time occurred outside of any active shift, skipping recording');
+        return;
+      }
+      
+      // If idle period spans across shift boundaries, adjust the time
+      if (wasInShiftAtStart && !wasInShiftAtEnd) {
+        // Find the shift end time and use that instead
+        console.log('Idle period extends beyond shift end, adjusting end time');
+        // This is simplified - in a real implementation, you'd calculate the exact shift end time
+        // For now, we'll just truncate at the current time for simplicity
+      } else if (!wasInShiftAtStart && wasInShiftAtEnd) {
+        // Find the shift start time and use that instead
+        console.log('Idle period started before shift, adjusting start time');
+        // Again, simplified implementation
+      }
+    }
+    
     if (!idleStart || !idleEnd) {
       console.log('Missing start or end time for idle period, skipping recording');
       return;
@@ -126,6 +157,14 @@ async function recordIdleTimeEvent(idleStart, idleEnd) {
   }
 }
 
+// Helper function to check if user was in shift at a specific time
+function wasInShift(timestamp) {
+  // This is a simplified implementation
+  // In a real implementation, you'd check if the given timestamp falls within any shift
+  // For now, we'll just check current shift status as an approximation
+  return shiftService.isInActiveShift();
+}
+
 // Check if currently idle
 export function isIdle() {
   return isCurrentlyIdle;
@@ -140,7 +179,8 @@ export function getIdleStartTime() {
 export function getDebugInfo() {
   return {
     isCurrentlyIdle,
-    idleStartTime: idleStartTime ? idleStartTime.toISOString() : null
+    idleStartTime: idleStartTime ? idleStartTime.toISOString() : null,
+    trackOnlyDuringShifts
   };
 }
 

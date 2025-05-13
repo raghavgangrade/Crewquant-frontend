@@ -1,82 +1,138 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CrewQuant Time Tracker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CrewQuant Tracker</title>
   <style>
     body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
       width: 300px;
-      padding: 15px;
-      font-family: Arial, sans-serif;
-    }
-    .status {
+      margin: 0;
       padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 15px;
-    }
-    .work {
-      background-color: #c8e6c9;
-      color: #2e7d32;
-    }
-    .non-work {
-      background-color: #ffcdd2;
-      color: #c62828;
-    }
-    .not-logged-in {
-      background-color: #ffecb3;
-      color: #ff6f00;
-    }
-    .current-url {
-      margin-bottom: 15px;
-      word-break: break-all;
-    }
-    button {
-      background-color: #4285f4;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      cursor: pointer;
-      margin-top: 10px;
-      width: 100%;
-    }
-    button:hover {
-      background-color: #3367d6;
+      font-size: 14px;
     }
     .hidden {
       display: none;
     }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .section {
+      margin-bottom: 15px;
+    }
+    .status {
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .status.work {
+      background-color: #a5d6a7; /* Light green */
+    }
+    .status.non-work {
+      background-color: #ef9a9a; /* Light red */
+    }
+    .url {
+      word-break: break-all;
+      font-family: monospace;
+      padding: 5px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .work-id {
+      font-weight: bold;
+    }
+    .button {
+      display: inline-block;
+      padding: 5px 10px;
+      background-color: #2196f3;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+      border: none;
+      font-size: 13px;
+    }
+    .button:hover {
+      background-color: #0b7dda;
+    }
+    .button.secondary {
+      background-color: #9e9e9e;
+    }
+    .button.secondary:hover {
+      background-color: #828282;
+    }
+    .button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .shift-status {
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+    }
   </style>
 </head>
 <body>
-  <h2>CrewQuant Time Tracker</h2>
-  
-  <div id="not-logged-in" class="status not-logged-in hidden">
-    <p>You are not logged in.</p>
-    <button id="open-options">Login</button>
+  <!-- Not logged in view -->
+  <div id="not-logged-in">
+    <div class="title">CrewQuant Tracker</div>
+    <div class="section">
+      You need to log in to track time.
+      <div style="margin-top: 10px;">
+        <button id="open-options" class="button">Log In</button>
+      </div>
+    </div>
   </div>
 
+  <!-- Logged in view -->
   <div id="logged-in" class="hidden">
-    <div id="work-status" class="status work hidden">
-      <p>Currently tracking work time</p>
+    <div class="title">CrewQuant Tracker</div>
+    
+    <!-- Work Status -->
+    <div class="section">
+      <div id="work-status" class="status work hidden">
+        This is a work URL
+      </div>
+      <div id="non-work-status" class="status non-work hidden">
+        This is not a work URL
+      </div>
+    </div>
+
+    <!-- Shift Status -->
+    <div id="shift-status-section" class="section hidden">
+      <div class="shift-status">
+        <span id="shift-status-text">No Active Shift</span>
+      </div>
+      <button id="refresh-shifts" class="button">Refresh Shifts</button>
     </div>
     
-    <div id="non-work-status" class="status non-work hidden">
-      <p>Currently tracking non-work time</p>
+    <!-- URL Display -->
+    <div class="section">
+      <div>Current URL:</div>
+      <div id="current-url-text" class="url">No URL</div>
     </div>
     
-    <div class="current-url">
-      <strong>Current URL:</strong>
-      <p id="current-url-text"></p>
+    <!-- Work ID (only shown for work URLs) -->
+    <div id="work-id-section" class="section hidden">
+      <div>Work ID: <span id="work-id-text" class="work-id">Unknown</span></div>
     </div>
     
-    <div id="work-id-section" class="hidden">
-      <strong>Work ID:</strong>
-      <p id="work-id-text"></p>
+    <!-- Actions -->
+    <div class="section" style="display: flex;">
+      <button id="open-settings" class="button">Work Settings</button>
+      <button id="logout-button" class="button secondary">Log Out</button>
     </div>
-    
-    <button id="open-settings">Settings</button>
-    <button id="logout-button">Logout</button>
   </div>
-  
+
   <script type="module" src="popup.js"></script>
 </body>
 </html>

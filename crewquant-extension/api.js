@@ -34,6 +34,64 @@ export async function fetchWorkPolicy() {
     : null;
 }
 
+// Get user's shift assignments
+export async function fetchShiftAssignments() {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  // First get the current user's info
+  const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!userResponse.ok) {
+    throw new Error('Failed to fetch user info');
+  }
+
+  const userData = await userResponse.json();
+  const userId = userData.user.id;
+
+  // Then fetch assignments for that user
+  const assignmentsResponse = await fetch(`${API_BASE_URL}/assign-shift/user/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!assignmentsResponse.ok) {
+    throw new Error('Failed to fetch shift assignments');
+  }
+
+  return await assignmentsResponse.json();
+}
+
+// Get shift details by ID
+export async function fetchShiftDetails(shiftId) {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/shifts/${shiftId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch shift details for ID: ${shiftId}`);
+  }
+
+  return await response.json();
+}
+
 // Create time event
 export async function createTimeEvent(timeEvent) {
   const token = await getAuthToken();

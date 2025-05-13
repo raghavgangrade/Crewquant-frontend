@@ -1,11 +1,13 @@
 // URL Service - Handles URL tracking and work URL pattern matching
 import * as api from '../api.js';
+import * as shiftService from './shift-service.js';
 
 // State management for URL tracking
 let currentTabId = null;
 let currentUrl = null;
 let startTime = null;
 let workPolicy = null;
+let trackOnlyDuringShifts = true; // Config flag to enable/disable shift-based tracking
 
 // Load work policy from API
 export async function loadWorkPolicy() {
@@ -49,6 +51,11 @@ export function getWorkPolicy() {
 // Set work policy (useful for testing or direct updates)
 export function setWorkPolicy(policy) {
   workPolicy = policy;
+}
+
+// Enable or disable shift-based tracking
+export function setTrackOnlyDuringShifts(value) {
+  trackOnlyDuringShifts = value;
 }
 
 // Check if URL matches work patterns
@@ -170,6 +177,12 @@ export async function recordTimeEvent(isAuthenticated) {
       return;
     }
     
+    // Check if shift-based tracking is enabled and user is in an active shift
+    if (trackOnlyDuringShifts && !shiftService.isInActiveShift()) {
+      console.log('URL tracking skipped: User is not in an active shift');
+      return;
+    }
+
     const endTime = new Date();
     const duration = endTime - startTime;
     
