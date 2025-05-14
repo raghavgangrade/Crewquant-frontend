@@ -1,3 +1,4 @@
+// src/components/Header.tsx
 import React, { useState } from 'react';
 import { 
   AppBar, 
@@ -18,16 +19,14 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuth } from '../context/AuthContext';
 
-interface HeaderProps {
-  onLogout?: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onLogout }) => {
+const Header: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const { logout, appUser } = useAuth();
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMobileMenuAnchorEl(event.currentTarget);
@@ -42,11 +41,13 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
     handleMenuClose();
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    if (onLogout) onLogout();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     handleMenuClose();
   };
 
@@ -59,6 +60,12 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
             CrewQuant
           </Typography>
         </Box>
+        
+        {appUser && (
+          <Typography variant="body2" sx={{ mx: 2, display: { xs: 'none', md: 'block' } }}>
+            {appUser.email}
+          </Typography>
+        )}
         
         {isMobile ? (
           <>
@@ -97,13 +104,6 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
         ) : (
           <>
             <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button 
-                color="inherit" 
-                startIcon={<SettingsIcon />}
-                onClick={() => navigateTo('/work-policy')}
-              >
-                Work Policy
-              </Button>
               <Button 
                 color="inherit" 
                 startIcon={<AccessTimeIcon />}
@@ -125,7 +125,13 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
               >
                 Assignments
               </Button>
-              
+              <Button 
+                color="inherit" 
+                startIcon={<SettingsIcon />}
+                onClick={() => navigateTo('/work-policy')}
+              >
+                Work Policy
+              </Button>
             </Box>
             <Button 
               color="inherit" 

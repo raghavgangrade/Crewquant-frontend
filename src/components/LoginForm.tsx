@@ -1,14 +1,14 @@
+// src/components/LoginForm.tsx
 import React, { useState } from "react";
 import {useForm, SubmitHandler} from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { TextField, Button, Box, Typography, InputAdornment, CircularProgress } from '@mui/material';
+import { TextField, Button, Box, Typography, InputAdornment, CircularProgress, Divider } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import KeyIcon from '@mui/icons-material/Key';
-import axios from "axios";
+import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
+import { useAuth } from '../context/AuthContext';
 
 type FormData = {
     email: string;
@@ -22,6 +22,7 @@ const schema = yup.object().shape({
 
 const LoginForm: React.FC = () => {
     const navigate = useNavigate();
+    const { loginWithEmail, loginWithGoogle, error: authError } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [loginError, setLoginError] = useState<string | null>(null);
     
@@ -39,33 +40,30 @@ const LoginForm: React.FC = () => {
         setLoginError(null);
         
         try {
-          const response = await axios.post(`${API_BASE_URL}/auth/login`, data, {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          // Store token in localStorage
-          localStorage.setItem('token', response.data.token);
-          
-          // Store user info if needed
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          
-          console.log('Login successful:', response.data);
+          await loginWithEmail(data.email, data.password);
           reset();
-          
-          // Redirect to work policy page
           navigate('/work-policy');
-        } catch (error) {
-          if (axios.isAxiosError(error) && error.response) {
-            setLoginError(error.response.data.error || 'Failed to login');
-          } else {
-            console.error('Error:', error);
-            setLoginError('An error occurred while logging in. Please try again.');
-          }
+        } catch (error: any) {
+          setLoginError(error.message || 'Failed to login');
+          console.error('Login error:', error);
         } finally {
           setIsLoading(false);
         }
+    };
+
+    const handleGoogleSignIn = async () => {
+      setIsLoading(true);
+      setLoginError(null);
+      
+      try {
+        await loginWithGoogle();
+        navigate('/work-policy');
+      } catch (error: any) {
+        setLoginError(error.message || 'Failed to login with Google');
+        console.error('Google login error:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     return (
@@ -120,9 +118,21 @@ const LoginForm: React.FC = () => {
             {isLoading ? <CircularProgress size={24} /> : 'Login'}
           </Button>
 
-          {loginError && (
+          <Divider sx={{ my: 2 }}>OR</Divider>
+
+          <Button 
+            variant="outlined" 
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleSignIn}
+            fullWidth
+            disabled={isLoading}
+          >
+            Sign in with Google
+          </Button>
+
+          {(loginError || authError) && (
             <Typography color="error" textAlign="center">
-              {'Failed to login'} 
+              {loginError || authError}
             </Typography>
           )}
 
