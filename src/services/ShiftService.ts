@@ -35,17 +35,18 @@ export const createShift = async (payload: ShiftPayload, token: string) => {
 };
     
 
-export const getShifts = async (token: string) => {
-    const response = await axios.get(
-      `${API_BASE}/api/shifts`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  };
+export const getShifts = async (token: string, userId?: number) => {
+  const url = userId 
+    ? `${API_BASE}/api/shifts/user/${userId}` 
+    : `${API_BASE}/api/shifts`;
+  
+  const response = await axios.get(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
 
 // services/shiftService.ts
 

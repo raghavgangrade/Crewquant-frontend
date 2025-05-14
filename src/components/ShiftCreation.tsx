@@ -40,6 +40,7 @@ const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 const ShiftCreation: React.FC = () => {
   // State for shifts list
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<number>(0);
   
   // State for current form data
   const [formData, setFormData] = useState<Shift>({
@@ -63,7 +64,7 @@ const ShiftCreation: React.FC = () => {
     if (token) {
       const fetchShifts = async () => {
         try {
-          const response = await getShifts(token);
+          const response = await getShifts(token, currentUserId);
           console.log('API response:', response); // Should show { shifts: [...] }
   
           if (Array.isArray(response.shifts)) {
@@ -97,7 +98,21 @@ const ShiftCreation: React.FC = () => {
       fetchShifts();
     }
   }, [token]);
+
+  useEffect(() => {
+    // Get user from localStorage
+    const userString = localStorage.getItem('user');
+    if (userString) {
+      try {
+        const userData = JSON.parse(userString);
+        setCurrentUserId(userData.id);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+  }, []);
   
+
   const handleInputChange = (field: keyof Shift, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -136,7 +151,7 @@ const ShiftCreation: React.FC = () => {
     setIsLoading(true);
   
     const payload = {
-      user_id: 1, // Replace with actual dynamic user ID if needed
+      user_id: currentUserId,  // Replace with actual dynamic user ID if needed
       shift_name: formData.name,
       start_time: format(formData.startTime, 'HH:mm:ss'),
       end_time: format(formData.endTime, 'HH:mm:ss'),
