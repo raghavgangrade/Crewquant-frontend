@@ -34,6 +34,27 @@ async function initialize() {
   }
 }
 
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('CrewQuant extension installed');
+});
+
+// Check authentication status when extension loads
+chrome.runtime.onStartup.addListener(() => {
+  checkAuthentication();
+});
+
+// Function to check current authentication status
+function checkAuthentication() {
+  chrome.storage.local.get(['authToken', 'user'], (result) => {
+    if (result.authToken && result.user) {
+      console.log('User is authenticated');
+      // You could verify the token or refresh it here if needed
+    } else {
+      console.log('User is not authenticated');
+    }
+  });
+}
+
 // Setup persistence strategies to keep service worker alive
 function setupServiceWorkerPersistence() {
   // Keep-alive ping every 25 seconds to prevent service worker from going idle

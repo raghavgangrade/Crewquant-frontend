@@ -1,138 +1,117 @@
+<!-- crewquant-extension/options.html -->
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CrewQuant Tracker</title>
+  <title>CrewQuant Extension Options</title>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      width: 300px;
+      font-family: Arial, sans-serif;
       margin: 0;
+      padding: 20px;
+      width: 400px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
       padding: 10px;
-      font-size: 14px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
     }
     .hidden {
       display: none;
     }
-    .title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 15px;
+    .error {
+      color: red;
+      margin-top: 10px;
     }
-    .section {
-      margin-bottom: 15px;
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 10px 0;
     }
-    .status {
-      padding: 5px 10px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-weight: 500;
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #ccc;
     }
-    .status.work {
-      background-color: #a5d6a7; /* Light green */
+    .divider span {
+      padding: 0 10px;
     }
-    .status.non-work {
-      background-color: #ef9a9a; /* Light red */
+    .google-btn {
+      background-color: white;
+      color: #757575;
+      border: 1px solid #ccc;
     }
-    .url {
-      word-break: break-all;
-      font-family: monospace;
-      padding: 5px;
-      background: #f5f5f5;
-      border-radius: 4px;
-      font-size: 12px;
-      margin-bottom: 10px;
-    }
-    .work-id {
-      font-weight: bold;
-    }
-    .button {
-      display: inline-block;
-      padding: 5px 10px;
-      background-color: #2196f3;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-right: 5px;
-      border: none;
-      font-size: 13px;
-    }
-    .button:hover {
-      background-color: #0b7dda;
-    }
-    .button.secondary {
-      background-color: #9e9e9e;
-    }
-    .button.secondary:hover {
-      background-color: #828282;
-    }
-    .button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-    .shift-status {
-      padding: 5px 10px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-weight: 500;
-      border: 1px solid #ddd;
-      background-color: #f9f9f9;
+    .google-btn:hover {
+      background-color: #f1f1f1;
     }
   </style>
 </head>
 <body>
-  <!-- Not logged in view -->
-  <div id="not-logged-in">
-    <div class="title">CrewQuant Tracker</div>
-    <div class="section">
-      You need to log in to track time.
-      <div style="margin-top: 10px;">
-        <button id="open-options" class="button">Log In</button>
-      </div>
+  <h1>CrewQuant Extension</h1>
+  
+  <div id="login-form" class="container">
+    <h2>Login</h2>
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="Enter your email">
     </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input type="password" id="password" placeholder="Enter your password">
+    </div>
+    <button id="login-button">Login</button>
+    
+    <div class="divider"><span>OR</span></div>
+    
+    <button id="google-login-button" class="google-btn">
+      <img src="icons/google.svg" alt="Google" width="18" height="18" style="margin-right: 8px; vertical-align: middle;">
+      Sign in with Google
+    </button>
+    
+    <div id="login-error" class="error hidden"></div>
+  </div>
+  
+  <div id="logged-in" class="container hidden">
+    <h2>Account</h2>
+    <p id="status-message"></p>
+    <button id="logout-button">Logout</button>
   </div>
 
-  <!-- Logged in view -->
-  <div id="logged-in" class="hidden">
-    <div class="title">CrewQuant Tracker</div>
-    
-    <!-- Work Status -->
-    <div class="section">
-      <div id="work-status" class="status work hidden">
-        This is a work URL
-      </div>
-      <div id="non-work-status" class="status non-work hidden">
-        This is not a work URL
-      </div>
-    </div>
-
-    <!-- Shift Status -->
-    <div id="shift-status-section" class="section hidden">
-      <div class="shift-status">
-        <span id="shift-status-text">No Active Shift</span>
-      </div>
-      <button id="refresh-shifts" class="button">Refresh Shifts</button>
-    </div>
-    
-    <!-- URL Display -->
-    <div class="section">
-      <div>Current URL:</div>
-      <div id="current-url-text" class="url">No URL</div>
-    </div>
-    
-    <!-- Work ID (only shown for work URLs) -->
-    <div id="work-id-section" class="section hidden">
-      <div>Work ID: <span id="work-id-text" class="work-id">Unknown</span></div>
-    </div>
-    
-    <!-- Actions -->
-    <div class="section" style="display: flex;">
-      <button id="open-settings" class="button">Work Settings</button>
-      <button id="logout-button" class="button secondary">Log Out</button>
-    </div>
-  </div>
-
-  <script type="module" src="popup.js"></script>
+  <!-- Firebase Scripts -->
+  <script src="lib/firebase/firebase-app-compat.js"></script>
+  <script src="lib/firebase/firebase-auth-compat.js"></script>
+  
+  <!-- Configuration -->
+  <script src="config/firebase-config.js"></script>
+  
+  <!-- Your scripts -->
+  <script src="api.js"></script>
+  <script src="options.js"></script>
 </body>
 </html>
