@@ -139,9 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log("Backend registration successful:", response.status);
       
-      if (!response.data || !response.data.token) {
-        throw new Error('Invalid response from server');
-      }
+      
       
       // Store token and user data
       localStorage.setItem('token', response.data.token);

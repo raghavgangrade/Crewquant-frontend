@@ -1,8 +1,16 @@
 {
-  "name": "CrewQuant Extension",
-  "version": "1.0.0",
-  "description": "CrewQuant time tracking Chrome extension",
+  "name": "CrewQuant Time Tracker",
+  "version": "1.0",
+  "description": "Track work time based on URL patterns",
   "manifest_version": 3,
+  "permissions": [
+    "storage",
+    "tabs",
+    "idle",
+    "alarms",
+    "webNavigation",
+    "windows"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -11,25 +19,7 @@
     "default_popup": "popup.html"
   },
   "options_page": "options.html",
-  
-  "permissions": [
-    "storage",
-    "tabs",
-    "idle",
-    "identity"
-  ],
   "host_permissions": [
-    "https://*.lirisoft.net/*",
-    "https://*.firebaseapp.com/*"
-  ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  },
-  "oauth2": {
-    "client_id": "724419295480-93pdsrt2rifvsiqvbsgrmthbg2d3nn3i.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/userinfo.profile"
-    ]
-  }
+    "http://localhost:3001/*"
+  ]
 }
