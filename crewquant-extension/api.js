@@ -28,30 +28,7 @@ function firebaseLogin(email, password) {
   });
 }
 
-// Standard login with email/password (legacy)
-function login(email, password) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
-      
-      resolve(await response.json());
-    } catch (error) {
-      console.error('Login error:', error);
-      reject(error);
-    }
-  });
-}
+
 
 // Fetch user info
 function fetchUserInfo(token) {
