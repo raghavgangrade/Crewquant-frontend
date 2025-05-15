@@ -45,13 +45,18 @@ const RegisterForm: React.FC = () => {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
     setRegisterError(null);
+    console.log("data =>",data)
 
     try {
+      console.log("Initiating Firebase registration...");
+      // This will register with Firebase and sync to the backend
       await firebaseRegister(data.email, data.password);
+      console.log("Registration successful, redirecting to work policy page");
       navigate('/work-policy');
     } catch (error: any) {
-      setRegisterError(error.message || 'Registration failed');
       console.error('Register error:', error);
+      // Error message should come from the AuthContext
+      setRegisterError(error.message || 'Registration failed');
     } finally {
       setIsLoading(false);
     }
@@ -62,11 +67,15 @@ const RegisterForm: React.FC = () => {
     setRegisterError(null);
     
     try {
+      console.log("Initiating Google sign-in...");
+      // This will authenticate with Google and sync to the backend
       await loginWithGoogle();
+      console.log("Google sign-in successful, redirecting to work policy page");
       navigate('/work-policy');
     } catch (error: any) {
-      setRegisterError(error.message || 'Failed to register with Google');
       console.error('Google register error:', error);
+      // Error message should come from the AuthContext
+      setRegisterError(error.message || 'Failed to register with Google');
     } finally {
       setIsLoading(false);
     }

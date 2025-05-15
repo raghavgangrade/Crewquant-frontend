@@ -3,16 +3,16 @@
 const API_BASE_URL = 'https://crewquant.lirisoft.net/api';
 
 // Firebase login with ID token
-function firebaseLogin(idToken) {
+function firebaseLogin(email, password) {
   return new Promise(async (resolve, reject) => {
     try {
       console.log('Sending Firebase ID token to backend');
-      const response = await fetch(`${API_BASE_URL}/auth/firebase-login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ email, password }),
       });
       
       if (!response.ok) {

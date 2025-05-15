@@ -53,17 +53,17 @@ document.addEventListener('DOMContentLoaded', async function() {
           loginButton.disabled = true;
           
           // Login with Firebase
-          const userCredential = await auth.signInWithEmailAndPassword(email, password);
-          const firebaseUser = userCredential.user;
+          // const userCredential = await auth.signInWithEmailAndPassword(email, password);
+          // const firebaseUser = userCredential.user;
           
-          // Get Firebase ID Token
-          const idToken = await firebaseUser.getIdToken();
-          console.log('Got Firebase ID token');
+          // // Get Firebase ID Token
+          // const idToken = await firebaseUser.getIdToken();
+          // console.log('Got Firebase ID token');
           
           // Authenticate with backend
           console.log('Calling firebaseLogin with token');
-          const response = await firebaseLogin(idToken);
-          
+          const response = await firebaseLogin(email, password);
+          console.log('Backend login successful',response);
           // Save token and user info
           chrome.storage.local.set({ 
             authToken: response.token, 

@@ -37,26 +37,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Listen for auth state changes
+    // Listen for auth state changes in Firebase (just to track Firebase auth state)
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
       
       if (user) {
         try {
-          // Get Firebase ID token
-          const idToken = await user.getIdToken();
+          // Check if we have a backend token in local storage
+          const token = localStorage.getItem('token');
+          const storedUser = localStorage.getItem('user');
           
-          // Authenticate with backend
-          await authenticateWithBackend(idToken);
+          if (token && storedUser) {
+            // If we have a token, restore the user from local storage
+            setAppUser(JSON.parse(storedUser));
+          }
         } catch (err) {
-          console.error('Backend authentication error:', err);
-          setError('Failed to authenticate with backend');
+          console.error('Error handling auth state change:', err);
         }
-      } else {
-        // Clear local storage when user is logged out
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setAppUser(null);
       }
       
       setLoading(false);
@@ -65,36 +62,130 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  // Authenticate with backend
-  const authenticateWithBackend = async (idToken: string) => {
+  // Standard login using the backend login API
+  const loginWithEmail = async (email: string, password: string) => {
     try {
+      setError(null);
+      console.log("Starting email login process for:", email);
+      
+      // Direct API login without Firebase auth
+      console.log("Sending request to login endpoint");
       const response = await axios.post(
         `${API_BASE_URL}/auth/login`, 
-        { idToken },
+        { email, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
       
-      // Store backend token and user
+      console.log("Login successful:", response.status);
+      
+      if (!response.data || !response.data.token) {
+        throw new Error('Invalid response from server');
+      }
+      
+      // Store token and user data
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setAppUser(response.data.user);
       
-      return response.data;
-    } catch (err) {
-      console.error('Backend authentication failed:', err);
+      // Also sign in with Firebase to keep state in sync
+      // This is optional but helps with Firebase auth state consistency
+      try {
+        await emailSignIn(email, password);
+        console.log("Firebase login synced");
+      } catch (firebaseErr) {
+        // If Firebase login fails, it's not critical as we're using the backend token
+        console.warn("Firebase login sync failed, continuing with backend token", firebaseErr);
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      
+      // Handle response errors
+      if (err.response) {
+        if (err.response.status === 401) {
+          setError('Invalid email or password');
+        } else if (err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('Login failed. Please try again.');
+        }
+      } else {
+        setError(err.message || 'Login failed');
+      }
+      
       throw err;
     }
   };
 
-  // Login with email and password
-  const loginWithEmail = async (email: string, password: string) => {
+  // Register with Firebase and sync to backend
+  const register = async (email: string, password: string) => {
     try {
       setError(null);
-      const userCredential = await emailSignIn(email, password);
-      const idToken = await userCredential.user.getIdToken();
-      await authenticateWithBackend(idToken);
+      console.log("Starting registration process for:", email);
+      console.log("Registering with Firebase", email, password);
+      // First register with Firebase
+      // const userCredential = await emailSignUp(email, password);
+      // console.log("Firebase registration successful");
+      
+      // Get the Firebase ID token
+      // const idToken = await userCredential.user.getIdToken();
+      
+      // Register with backend using Firebase token
+      console.log("Registering with backend using Firebase token");
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/firebase-register`, 
+        { email, password },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      
+      console.log("Backend registration successful:", response.status);
+      
+      if (!response.data || !response.data.token) {
+        throw new Error('Invalid response from server');
+      }
+      
+      // Store token and user data
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      setAppUser(response.data.user);
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      console.error('Registration error:', err);
+      
+      // Handle Firebase errors
+      if (err.code) {
+        switch (err.code) {
+          case 'auth/email-already-in-use':
+            setError('Email is already in use');
+            break;
+          case 'auth/invalid-email':
+            setError('Invalid email address');
+            break;
+          case 'auth/weak-password':
+            setError('Password is too weak');
+            break;
+          default:
+            setError(err.message || 'Registration failed');
+            break;
+        }
+      } else if (err.response) {
+        // Handle API response errors
+        if (err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('Registration failed. Please try again.');
+        }
+      } else {
+        setError(err.message || 'Registration failed');
+      }
+      
+      // Clean up Firebase user if backend registration fails
+      if (currentUser) {
+        try {
+          await signOutUser();
+        } catch (cleanupErr) {
+          console.error('Error cleaning up Firebase user:', cleanupErr);
+        }
+      }
+      
       throw err;
     }
   };
@@ -103,24 +194,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const loginWithGoogle = async () => {
     try {
       setError(null);
+      console.log("Starting Google login process");
+      
+      // Sign in with Google via Firebase
       const result = await googleSignIn();
+      console.log("Google sign in successful");
+      
+      // Get the Firebase ID token
       const idToken = await result.user.getIdToken();
-      await authenticateWithBackend(idToken);
+      
+      // Register/login with backend using Firebase token
+      console.log("Authenticating with backend using Firebase token");
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/firebase-register`, 
+        { idToken },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      
+      console.log("Backend Google authentication successful:", response.status);
+      
+      if (!response.data || !response.data.token) {
+        throw new Error('Invalid response from server');
+      }
+      
+      // Store token and user data
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      setAppUser(response.data.user);
     } catch (err: any) {
-      setError(err.message || 'Google login failed');
-      throw err;
-    }
-  };
-
-  // Register with email and password
-  const register = async (email: string, password: string) => {
-    try {
-      setError(null);
-      const userCredential = await emailSignUp(email, password);
-      const idToken = await userCredential.user.getIdToken();
-      await authenticateWithBackend(idToken);
-    } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      console.error('Google login error:', err);
+      
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError(err.message || 'Google login failed');
+      }
+      
+      // Clean up Firebase user if backend authentication fails
+      if (currentUser) {
+        try {
+          await signOutUser();
+        } catch (cleanupErr) {
+          console.error('Error cleaning up Firebase user:', cleanupErr);
+        }
+      }
+      
       throw err;
     }
   };
@@ -128,11 +246,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Logout
   const logout = async () => {
     try {
-      await signOutUser();
+      // Clear local storage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setAppUser(null);
+      
+      // Also sign out from Firebase
+      await signOutUser();
     } catch (err: any) {
+      console.error('Logout error:', err);
       setError(err.message || 'Logout failed');
       throw err;
     }
