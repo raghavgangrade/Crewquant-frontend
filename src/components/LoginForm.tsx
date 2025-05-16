@@ -42,7 +42,7 @@ const LoginForm: React.FC = () => {
         try {
           await loginWithEmail(data.email, data.password);
           reset();
-          navigate('/work-policy');
+          navigate('/time-events');
         } catch (error: any) {
           setLoginError(error.message || 'Failed to login');
           console.error('Login error:', error);
